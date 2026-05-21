@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>報價單</title>
+
+<style>
+body{
+  font-family: sans-serif;
+  text-align:center;
+  padding:50px;
+}
+#content{display:none;}
+</style>
+</head>
+
+<body>
+
+<h2>🔒 請輸入密碼查看報價單</h2>
+
+<input type="password" id="pwd" placeholder="輸入密碼">
+<button onclick="check()">進入</button>
+
+<div id="content">
+  <h1>📄 報價單內容</h1>
+  <p>👉 這裡放你的報價 / PDF / 商品內容</p>
+</div>
+
+<script>
+
+// 👉 可用密碼（你可以一直新增）
+const passwords = ["ABC123","XYZ789","QWE456"];
+
+
+// 👉 如果已經看過 → 直接擋
+if(localStorage.getItem("viewed")){
+  document.body.innerHTML = "<h2>❌ 此報價已查看，如需再次查看請聯絡業務</h2>";
+}
+
+
+function check(){
+  const input = document.getElementById("pwd").value;
+
+  if(passwords.includes(input)){
+
+    document.querySelector("h2").style.display="none";
+    document.getElementById("pwd").style.display="none";
+    document.querySelector("button").style.display="none";
+
+    document.getElementById("content").style.display="block";
+
+    // 👉 記錄已看過
+    localStorage.setItem("viewed", true);
+
+  }else{
+    alert("密碼錯誤");
+  }
+}
+
+</script>
+
+</body>
+</html>
