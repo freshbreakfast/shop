@@ -2,54 +2,147 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>報價單</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鮮到味｜專屬報價</title>
 
 <style>
 body{
-  font-family: sans-serif;
-  text-align:center;
-  padding:50px;
+  margin:0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:#f5f5f5;
+  color:#333;
 }
-#content{display:none;}
+
+/* 登入區 */
+.login{
+  text-align:center;
+  padding:60px 20px;
+}
+
+input{
+  padding:12px;
+  width:80%;
+  border-radius:10px;
+  border:1px solid #ddd;
+  margin-top:10px;
+  font-size:16px;
+}
+
+button{
+  margin-top:15px;
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  background:#333;
+  color:#fff;
+  font-size:16px;
+}
+
+/* 報價內容 */
+#content{
+  display:none;
+  padding:20px;
+}
+
+/* 標題 */
+.header{
+  font-size:22px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+/* 卡片 */
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:15px;
+  margin-bottom:15px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* 商品名稱 */
+.name{
+  font-size:18px;
+  font-weight:bold;
+}
+
+/* 價格 */
+.price{
+  color:#e53935;
+  font-size:16px;
+  margin-top:5px;
+}
+
+/* 提示 */
+.note{
+  font-size:13px;
+  color:#888;
+  margin-top:10px;
+}
 </style>
+
 </head>
 
 <body>
 
-<h2>🔒 請輸入密碼查看報價單</h2>
-
-<input type="password" id="pwd" placeholder="輸入密碼">
-<button onclick="check()">進入</button>
+<div class="login">
+  <h2>🔒 請輸入密碼查看報價</h2>
+  <input type="password" id="pwd" placeholder="輸入密碼">
+  <br>
+  <button onclick="check()">進入</button>
+</div>
 
 <div id="content">
-  <h1>📄 報價單內容</h1>
-  <p>👉 這裡放你的報價 / PDF / 商品內容</p>
+  <div class="header">鮮到味｜專屬報價單</div>
+
+  <div class="card">
+    <div class="name">非基改濃豆漿</div>
+    <div class="price">$80 / 瓶</div>
+  </div>
+
+  <div class="card">
+    <div class="name">手作豬肉水餃</div>
+    <div class="price">$120 / 包</div>
+  </div>
+
+  <div class="card">
+    <div class="name">鐵板麵（義大利風味）</div>
+    <div class="price">$95 / 份</div>
+  </div>
+
+  <div class="card">
+    <div class="name">厚切原肉豬排</div>
+    <div class="price">$110 / 片</div>
+  </div>
+
+  <div class="note">
+    ※ 此報價僅供本次參考，如需再次查看請聯絡我們
+  </div>
 </div>
 
 <script>
 
-// 👉 可用密碼（你可以一直新增）
-const passwords = ["ABC123","XYZ789","QWE456"];
+// 👉 可用密碼
+const passwords = ["ABC123"];
 
-
-// 👉 如果已經看過 → 直接擋
+// 👉 已看過鎖定
 if(localStorage.getItem("viewed")){
-  document.body.innerHTML = "<h2>❌ 此報價已查看，如需再次查看請聯絡業務</h2>";
+  document.body.innerHTML = `
+    <div style="text-align:center;padding:60px;">
+      <h2>❌ 此報價已查看</h2>
+      <p>如需再次查看，請聯絡客服取得新密碼</p>
+    </div>
+  `;
 }
-
 
 function check(){
   const input = document.getElementById("pwd").value;
 
   if(passwords.includes(input)){
 
-    document.querySelector("h2").style.display="none";
-    document.getElementById("pwd").style.display="none";
-    document.querySelector("button").style.display="none";
-
+    document.querySelector(".login").style.display="none";
     document.getElementById("content").style.display="block";
 
-    // 👉 記錄已看過
     localStorage.setItem("viewed", true);
 
   }else{
