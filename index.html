@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>報價系統</title>
+<title>專屬報價系統</title>
 
 <style>
 body{
@@ -43,6 +43,15 @@ button{
   margin-top:20px;
 }
 
+.version{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:8px;
+  background:#eee;
+  margin-top:10px;
+  font-size:14px;
+}
+
 .lock{
   color:red;
   font-weight:bold;
@@ -53,38 +62,48 @@ button{
 <body>
 
 <div class="container" id="loginBox">
-  <h2>🔒 請輸入報價密碼</h2>
-  <input type="password" id="pwd" placeholder="輸入密碼">
-  <button onclick="checkPwd()">進入</button>
+  <h2>🔒 專屬報價登入</h2>
+  <input type="password" id="pwd" placeholder="輸入報價密碼">
+  <button onclick="checkPwd()">進入報價</button>
 </div>
 
 <div id="content"></div>
 
 <script>
 
-// 🔐 可用密碼（你可自行加）
-const validPasswords = ["ABC123","XYZ789","NEW888"];
+// 🔐 報價資料（你可以自己改）
+const quotes = {
+  "ABC123": {
+    customer: "永和早餐店",
+    version: "V2",
+    pdf: "報價單.pdf"
+  },
+  "XYZ789": {
+    customer: "板橋早午餐",
+    version: "V1",
+    pdf: "報價單.pdf"
+  }
+};
 
-// 👉 主程式
+// 👉 主邏輯
 function checkPwd(){
 
   const input = document.getElementById("pwd").value;
 
-  // ❌ 密碼錯誤
-  if(!validPasswords.includes(input)){
+  if(!quotes[input]){
     alert("❌ 密碼錯誤");
     return;
   }
 
   const key = "quote_" + input;
 
-  // 🔥 已看過就鎖
+  // 🔥 看過就鎖
   if(localStorage.getItem(key)){
     lockPage();
     return;
   }
 
-  // ✅ 第一次進入
+  // 第一次進入
   localStorage.setItem(key, "used");
 
   showQuote(input);
@@ -93,15 +112,20 @@ function checkPwd(){
 // 📄 顯示報價
 function showQuote(code){
 
+  const data = quotes[code];
+
   document.getElementById("loginBox").style.display = "none";
 
   document.getElementById("content").innerHTML = `
     <div class="card">
-      <h2>📄 報價單</h2>
-      <p>報價代碼：${code}</p>
-      <p>✔ 已成功進入報價</p>
+      <h2>📄 ${data.customer}｜專屬報價</h2>
 
-      <button onclick="openPDF()">📄 開啟 PDF</button>
+      <div class="version">版本 ${data.version}</div>
+
+      <p>✔ 已成功進入報價</p>
+      <p>⚠ 此報價僅限一次查看</p>
+
+      <button onclick="openPDF('${data.pdf}')">📄 開啟 PDF</button>
     </div>
   `;
 }
@@ -119,10 +143,11 @@ function lockPage(){
 }
 
 // 📄 PDF
-function openPDF(){
-  window.open("報價單.pdf","_blank");
+function openPDF(file){
+  window.open(file, "_blank");
 }
 
 </script>
+
 </body>
 </html>
