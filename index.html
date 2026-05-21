@@ -1,1 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>報價單</title>
 
+<style>
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#f5f5f5;
+}
+
+.login{
+  text-align:center;
+  padding:60px 20px;
+}
+
+input{
+  padding:12px;
+  width:80%;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:16px;
+}
+
+button{
+  margin-top:15px;
+  padding:12px;
+  width:80%;
+  border:none;
+  border-radius:10px;
+  background:#333;
+  color:#fff;
+  font-size:16px;
+}
+
+#content{
+  display:none;
+  padding:20px;
+  text-align:center;
+}
+
+.card{
+  background:#fff;
+  padding:20px;
+  border-radius:15px;
+  margin-top:20px;
+}
+
+.pdf-btn{
+  margin-top:15px;
+  padding:15px;
+  width:100%;
+  border:none;
+  border-radius:12px;
+  background:#e53935;
+  color:#fff;
+  font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login">
+  <h2>🔒 請輸入密碼查看報價</h2>
+  <input type="password" id="pwd" placeholder="輸入密碼">
+  <button onclick="check()">進入</button>
+</div>
+
+<div id="content">
+  <h2>📄 報價單</h2>
+
+  <div class="card">
+    <p>已成功登入，可查看內容</p>
+
+    <button class="pdf-btn" onclick="openPDF()">
+      📄 開啟 PDF 報價單
+    </button>
+
+    <div style="margin-top:15px;">
+      非基改豆漿 $80<br>
+      手作水餃 $120<br>
+      鐵板麵 $95
+    </div>
+  </div>
+</div>
+
+<script>
+
+// 🔐 可用密碼
+const validPasswords = ["ABC123","XYZ789","NEW888"];
+
+// 🚫 已用過的密碼（本機記錄）
+let usedPassword = localStorage.getItem("usedPassword");
+
+// 👉 驗證
+function check(){
+  const input = document.getElementById("pwd").value;
+
+  if(!validPasswords.includes(input)){
+    alert("密碼錯誤");
+    return;
+  }
+
+  // 👉 如果這個密碼已用過
+  if(usedPassword === input){
+    alert("❌ 此密碼已使用，請聯絡取得新密碼");
+    return;
+  }
+
+  // 👉 通過
+  localStorage.setItem("usedPassword", input);
+
+  document.querySelector(".login").style.display="none";
+  document.getElementById("content").style.display="block";
+}
+
+// 👉 開 PDF
+function openPDF(){
+  window.open("報價單.pdf","_blank");
+}
+
+</script>
+</body>
+</html>
