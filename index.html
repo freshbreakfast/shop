@@ -1,43 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>報價單</title>
-
-<style>
-body{
-  margin:0;
-  font-family:sans-serif;
-  background:#f5f5f5;
-}
-
-.login{
-  text-align:center;
-  padding:60px 20px;
-}
-
-input{
-  padding:12px;
-  width:80%;
-  border-radius:10px;
-  border:1px solid #ddd;
-  font-size:16px;
-}
-
-button{
-  margin-top:15px;
-  padding:12px;
-  width:80%;
-  border:none;
-  border-radius:10px;
-  background:#333;
-  color:#fff;
-  font-size:16px;
-}
-
-#content{
-  display:none;
+display:none;
   padding:20px;
   text-align:center;
 }
@@ -50,12 +11,23 @@ button{
 }
 
 .pdf-btn{
-  margin-top:15px;
+  margin-top:10px;
   padding:15px;
   width:100%;
   border:none;
   border-radius:12px;
   background:#e53935;
+  color:#fff;
+  font-size:16px;
+}
+
+.line-btn{
+  margin-top:10px;
+  padding:15px;
+  width:100%;
+  border:none;
+  border-radius:12px;
+  background:#00c300;
   color:#fff;
   font-size:16px;
 }
@@ -65,64 +37,112 @@ button{
 <body>
 
 <div class="login">
-  <h2>🔒 請輸入密碼查看報價</h2>
-  <input type="password" id="pwd" placeholder="輸入密碼">
+  <h2>🔒 專屬報價系統</h2>
+  <input type="password" id="pwd" placeholder="請輸入密碼">
   <button onclick="check()">進入</button>
 </div>
 
 <div id="content">
-  <h2>📄 報價單</h2>
+  <h2 id="title">📄 報價單</h2>
 
   <div class="card">
-    <p>已成功登入，可查看內容</p>
+    <p>✔ 已成功登入專屬報價</p>
 
     <button class="pdf-btn" onclick="openPDF()">
-      📄 開啟 PDF 報價單
+      📄 開啟 PDF 報價
     </button>
 
-    <div style="margin-top:15px;">
-      非基改豆漿 $80<br>
-      手作水餃 $120<br>
-      鐵板麵 $95
-    </div>
+    <button class="line-btn" onclick="openLine()">
+      📩 聯絡客服（LINE）
+    </button>
   </div>
 </div>
 
-<script>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// 🔐 可用密碼
-const validPasswords = ["ABC123","XYZ789","NEW888"];
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH",
+  databaseURL: "YOUR_DB_URL",
+  projectId: "YOUR_ID"
+};
 
-// 🚫 已用過的密碼（本機記錄）
-let usedPassword = localStorage.getItem("usedPassword");
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-// 👉 驗證
-function check(){
+const ONE_DAY = 24 * 60 * 60 * 1000;
+
+let currentCode = "";
+let currentCustomer = "";
+let currentVersion = "";
+
+// 🔐 驗證
+window.check = async function(){
+
   const input = document.getElementById("pwd").value;
+  currentCode = input;
 
-  if(!validPasswords.includes(input)){
-    alert("密碼錯誤");
+  const snap = await get(ref(db, "passwords/" + input));
+
+  if(!snap.exists()){
+    alert("❌ 密碼錯誤");
     return;
   }
 
-  // 👉 如果這個密碼已用過
-  if(usedPassword === input){
-    alert("❌ 此密碼已使用，請聯絡取得新密碼");
+  const data = snap.val();
+  const now = Date.now();
+
+  currentCustomer = data.customer || "專屬客戶";
+  currentVersion = data.version || "V1";
+
+  document.getElementById("title").innerText =
+    `📄 ${currentCustomer}｜報價單（${currentVersion}）`;
+
+  // ❌ 過期
+  if(now > data.expireAt){
+    alert("❌ 報價已失效，請聯絡客服");
     return;
   }
 
-  // 👉 通過
-  localStorage.setItem("usedPassword", input);
+  // ❌ 已使用
+  if(data.used){
+    alert("❌ 此報價已使用，請聯絡客服");
+    return;
+  }
+
+  // ✅ 標記使用
+  await set(ref(db, "passwords/" + input), {
+    ...data,
+    used: true
+  });
 
   document.querySelector(".login").style.display="none";
   document.getElementById("content").style.display="block";
-}
+};
 
-// 👉 開 PDF
-function openPDF(){
+// 📄 PDF
+window.openPDF = function(){
   window.open("報價單.pdf","_blank");
-}
+};
+
+// 📩 LINE
+window.openLine = function(){
+
+  const msg =
+`我要重新查看報價
+客戶：${currentCustomer}
+代碼：${currentCode}
+版本：${currentVersion}`;
+
+  const url = "https://line.me/R/ti/p/@567ncwhd?text=" + encodeURIComponent(msg);
+
+  window.open(url, "_blank");
+};
 
 </script>
 </body>
 </html>
+🗄 Firebase 資料格式（一定要照這
