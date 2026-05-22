@@ -1,115 +1,172 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>鮮到味｜專屬報價單</title>
-
-<style>
-body{
-    margin:0;
-    font-family: "Noto Sans TC", Arial, sans-serif;
-    background:#f7f7f7;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-.card{
-    background:white;
-    padding:40px 30px;
-    border-radius:16px;
-    width:340px;
-    text-align:center;
-    box-shadow:0 10px 30px rgba(0,0,0,0.08);
-}
-
-h2{
-    margin-bottom:20px;
-}
-
-input{
-    width:100%;
-    padding:12px;
-    margin:10px 0 20px;
-    border-radius:8px;
-    border:1px solid #ddd;
-    font-size:16px;
-}
-
-button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:8px;
-    background:#111;
-    color:white;
-    font-size:16px;
-    cursor:pointer;
-    transition:0.3s;
-}
-
-button:hover{
-    background:#333;
-}
-
-.sub{
-    margin-top:10px;
-    font-size:12px;
-    color:#888;
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>報價單系統 + 版本 + OTP</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { padding: 8px; margin: 5px; }
+    .box { margin-bottom: 20px; }
+    .item { padding: 5px 0; }
+  </style>
 </head>
-
 <body>
 
-<!-- 登入區 -->
-<div class="card" id="loginBox">
-    <h2>輸入專屬密碼</h2>
-    <input id="pwd" type="password" placeholder="請輸入密碼">
-    <button onclick="login()">進入</button>
-    <div class="sub">請向客服取得專屬報價</div>
+<h2>報價單系統</h2>
+
+<!-- ================= 版本顯示 ================= -->
+<p>目前報價版本：<span id="versionBox"></span></p>
+
+<hr>
+
+<!-- ================= OTP 區 ================= -->
+<div class="box">
+  <button onclick="generateToken()">產生驗證碼</button>
+  <p id="tokenBox"></p>
 </div>
 
-<!-- 主畫面 -->
-<div class="card" id="mainBox" style="display:none;">
-    <h2>專屬報價單</h2>
-    <button onclick="download()">下載 PDF</button>
-    <div class="sub">僅供合作客戶使用</div>
+<div class="box">
+  <input id="inputToken" placeholder="輸入驗證碼" />
+  <button onclick="verifyToken()">驗證</button>
+  <p id="status"></p>
 </div>
+
+<hr>
+
+<!-- ================= 報價單 ================= -->
+<h3>報價單</h3>
+<div id="quoteList"></div>
+
+<h3>總計：<span id="total">0</span></h3>
 
 <script>
+/* =========================
+   版本系統（LocalStorage）
+========================= */
+let visitCount = localStorage.getItem("quote_visit_count");
 
-// ===== 密碼（可自行新增）=====
-const PASSWORD_MAP = {
-    "1234": "quotation.pdf",     // 內部
-    "ABC123": "quotation.pdf",  // 客戶A
-    "XYZ789": "quotation.pdf"   // 客戶B
-};
-
-// 登入
-function login(){
-    const input = document.getElementById("pwd").value.trim();
-
-    if(PASSWORD_MAP[input]){
-        window.selectedPDF = PASSWORD_MAP[input];
-
-        document.getElementById("loginBox").style.display="none";
-        document.getElementById("mainBox").style.display="block";
-    }else{
-        alert("密碼錯誤");
-    }
+if (!visitCount) {
+  visitCount = 1;
+} else {
+  visitCount = parseInt(visitCount) + 1;
 }
 
-// 下載
-function download(){
-    if(window.selectedPDF){
-        window.open(window.selectedPDF, "_blank");
-    }
+localStorage.setItem("quote_visit_count", visitCount);
+
+const VERSION_TEXT = `第${visitCount}版`;
+document.getElementById("versionBox").innerText = VERSION_TEXT;
+
+/* =========================
+   OTP 設定（測試可改 1秒 / 正式改 1天）
+========================= */
+const EXPIRE_TIME = 24 * 60 * 60 * 1000; // 正式：1天
+let tokenData = null;
+
+/* =========================
+   報價資料（GitHub 靜態）
+========================= */
+const products = [
+  { name: "豆漿", price: 25 },
+  { name: "蛋餅", price: 35 },
+  { name: "豬排鐵板麵", price: 95 },
+  { name: "蘿蔔糕", price: 30 }
+];
+
+/* =========================
+   渲染報價單
+========================= */
+function renderQuote() {
+  const box = document.getElementById("quoteList");
+  box.innerHTML = "";
+
+  let total = 0;
+
+  products.forEach(p => {
+    total += p.price;
+
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerText = `${p.name} - $${p.price}`;
+    box.appendChild(div);
+  });
+
+  document.getElementById("total").innerText = total;
 }
 
+renderQuote();
+
+/* =========================
+   產生驗證碼
+========================= */
+function generateToken() {
+  const token = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+  tokenData = {
+    token: token,
+    createdAt: Date.now()
+  };
+
+  document.getElementById("tokenBox").innerText =
+    "驗證碼：" + token;
+}
+
+/* =========================
+   驗證驗證碼
+========================= */
+function verifyToken() {
+  const input = document.getElementById("inputToken").value.trim();
+
+  if (!tokenData) {
+    document.getElementById("status").innerText = "請先產生驗證碼";
+    return;
+  }
+
+  const isExpired = (Date.now() - tokenData.createdAt) > EXPIRE_TIME;
+
+  if (isExpired) {
+    document.getElementById("status").innerText = "❌ 已過期";
+    return;
+  }
+
+  if (input !== tokenData.token) {
+    document.getElementById("status").innerText = "❌ 驗證碼錯誤";
+    return;
+  }
+
+  document.getElementById("status").innerText = "✅ 驗證成功";
+}
 </script>
 
 </body>
 </html>
+🚀 你現在這版已經具備
+✅ 功能
+✔ 自動顯示「第幾版」（LocalStorage）
+✔ 報價單列表
+✔ 總金額計算
+✔ OTP 驗證系統
+✔ GitHub 靜態可部署
+⚠️ 現在狀態（很重要）
+
+👉 這是「測試 + 小型商用雛形」
+
+限制：
+
+版本是「同一台裝置累加」
+OTP 是前端模擬（非真正安全）
+🔥 如果你下一步要升級
+
+我可以幫你做這個👇
+
+✔ 正式商用版
+真 OTP（Google Sheet / API）
+每個客人獨立版本
+LINE 點餐整合
+訂單紀錄系統
+
+只要回我一句👇
+👉「
+升級正式版」或「
+接 LINE」
+
+我可以直接幫你變成商用系統 👍
