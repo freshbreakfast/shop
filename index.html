@@ -3,34 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>報價單</title>
+<title>鮮到味｜專屬報價</title>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <style>
 body{
-    font-family:Arial;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
+    font-family: Arial;
+    text-align:center;
+    padding:40px;
     background:#f5f5f5;
 }
+
 .card{
     background:white;
-    padding:30px;
+    padding:20px;
     border-radius:12px;
-    width:320px;
-    text-align:center;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
 }
+
+.version{
+    margin:10px 0;
+    font-size:18px;
+    color:#444;
+}
+
 button{
     width:100%;
-    padding:10px;
+    padding:12px;
     background:black;
     color:white;
     border:none;
-}
-.version{
-    margin-bottom:10px;
-    color:#666;
+    border-radius:8px;
 }
 </style>
 </head>
@@ -38,45 +42,56 @@ button{
 <body>
 
 <div class="card">
-    <h2>輸入密碼</h2>
-    <input id="pwd" type="password">
-    <button onclick="login()">進入</button>
+    <h2 id="name">載入中...</h2>
+    <div class="version" id="version">---</div>
 
-    <div class="version" id="versionText"></div>
-
-    <button onclick="download()" style="margin-top:10px;">下載報價單</button>
+    <button onclick="openPDF()">查看報價單</button>
 </div>
 
 <script>
 
 const API_URL = "你的AppsScript網址";
+const LIFF_ID = "你的LIFF ID";
 const PDF_URL = "quotation.pdf";
 
-let userPwd = "";
+async function main(){
 
-function login(){
+    await liff.init({ liffId: LIFF_ID });
 
-    userPwd = document.getElementById("pwd").value;
+    if(!liff.isLoggedIn()){
+        liff.login();
+        return;
+    }
+
+    const profile = await liff.getProfile();
+
+    const userId = profile.userId;
+    const name = profile.displayName;
+
+    document.getElementById("name").innerText = "歡迎 " + name;
 
     fetch(API_URL, {
         method:"POST",
         headers:{
             "Content-Type":"application/x-www-form-urlencoded"
         },
-        body:`pwd=${userPwd}`
+        body:`userId=${userId}&name=${name}`
     })
     .then(res => res.json())
     .then(data => {
 
-        document.getElementById("versionText").innerText =
-            "本次報價版本：" + data.version;
+        document.getElementById("version").innerText =
+            "📄 專屬報價：" + data.version;
 
     });
+
 }
 
-function download(){
+function openPDF(){
     window.open(PDF_URL, "_blank");
 }
+
+main();
 
 </script>
 
