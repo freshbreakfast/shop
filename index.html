@@ -2,48 +2,29 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>報價單系統 + 版本 + OTP</title>
+  <title>系統</title>
   <style>
     body { font-family: Arial; padding: 20px; }
     input, button { padding: 8px; margin: 5px; }
-    .box { margin-bottom: 20px; }
-    .item { padding: 5px 0; }
   </style>
 </head>
 <body>
 
-<h2>報價單系統</h2>
-
 <!-- ================= 版本顯示 ================= -->
-<p>目前報價版本：<span id="versionBox"></span></p>
+<p>目前版本：<span id="versionBox"></span></p>
 
-<hr>
+<!-- ================= 密碼輸入 ================= -->
+<h3>輸入密碼</h3>
+<input type="password" id="passwordInput" placeholder="請輸入密碼" />
+<button onclick="checkPassword()">進入</button>
 
-<!-- ================= OTP 區 ================= -->
-<div class="box">
-  <button onclick="generateToken()">產生驗證碼</button>
-  <p id="tokenBox"></p>
-</div>
-
-<div class="box">
-  <input id="inputToken" placeholder="輸入驗證碼" />
-  <button onclick="verifyToken()">驗證</button>
-  <p id="status"></p>
-</div>
-
-<hr>
-
-<!-- ================= 報價單 ================= -->
-<h3>報價單</h3>
-<div id="quoteList"></div>
-
-<h3>總計：<span id="total">0</span></h3>
+<p id="status"></p>
 
 <script>
 /* =========================
    版本系統（LocalStorage）
 ========================= */
-let visitCount = localStorage.getItem("quote_visit_count");
+let visitCount = localStorage.getItem("visit_count");
 
 if (!visitCount) {
   visitCount = 1;
@@ -51,122 +32,25 @@ if (!visitCount) {
   visitCount = parseInt(visitCount) + 1;
 }
 
-localStorage.setItem("quote_visit_count", visitCount);
+localStorage.setItem("visit_count", visitCount);
 
-const VERSION_TEXT = `第${visitCount}版`;
-document.getElementById("versionBox").innerText = VERSION_TEXT;
-
-/* =========================
-   OTP 設定（測試可改 1秒 / 正式改 1天）
-========================= */
-const EXPIRE_TIME = 24 * 60 * 60 * 1000; // 正式：1天
-let tokenData = null;
+document.getElementById("versionBox").innerText = `第${visitCount}版`;
 
 /* =========================
-   報價資料（GitHub 靜態）
+   密碼驗證
 ========================= */
-const products = [
-  { name: "豆漿", price: 25 },
-  { name: "蛋餅", price: 35 },
-  { name: "豬排鐵板麵", price: 95 },
-  { name: "蘿蔔糕", price: 30 }
-];
+function checkPassword() {
+  const input = document.getElementById("passwordInput").value;
 
-/* =========================
-   渲染報價單
-========================= */
-function renderQuote() {
-  const box = document.getElementById("quoteList");
-  box.innerHTML = "";
+  const correctPassword = "1234"; // ← 可自行修改
 
-  let total = 0;
-
-  products.forEach(p => {
-    total += p.price;
-
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerText = `${p.name} - $${p.price}`;
-    box.appendChild(div);
-  });
-
-  document.getElementById("total").innerText = total;
-}
-
-renderQuote();
-
-/* =========================
-   產生驗證碼
-========================= */
-function generateToken() {
-  const token = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-  tokenData = {
-    token: token,
-    createdAt: Date.now()
-  };
-
-  document.getElementById("tokenBox").innerText =
-    "驗證碼：" + token;
-}
-
-/* =========================
-   驗證驗證碼
-========================= */
-function verifyToken() {
-  const input = document.getElementById("inputToken").value.trim();
-
-  if (!tokenData) {
-    document.getElementById("status").innerText = "請先產生驗證碼";
-    return;
+  if (input === correctPassword) {
+    document.getElementById("status").innerText = "✅ 進入成功";
+  } else {
+    document.getElementById("status").innerText = "❌ 密碼錯誤";
   }
-
-  const isExpired = (Date.now() - tokenData.createdAt) > EXPIRE_TIME;
-
-  if (isExpired) {
-    document.getElementById("status").innerText = "❌ 已過期";
-    return;
-  }
-
-  if (input !== tokenData.token) {
-    document.getElementById("status").innerText = "❌ 驗證碼錯誤";
-    return;
-  }
-
-  document.getElementById("status").innerText = "✅ 驗證成功";
 }
 </script>
 
 </body>
 </html>
-🚀 你現在這版已經具備
-✅ 功能
-✔ 自動顯示「第幾版」（LocalStorage）
-✔ 報價單列表
-✔ 總金額計算
-✔ OTP 驗證系統
-✔ GitHub 靜態可部署
-⚠️ 現在狀態（很重要）
-
-👉 這是「測試 + 小型商用雛形」
-
-限制：
-
-版本是「同一台裝置累加」
-OTP 是前端模擬（非真正安全）
-🔥 如果你下一步要升級
-
-我可以幫你做這個👇
-
-✔ 正式商用版
-真 OTP（Google Sheet / API）
-每個客人獨立版本
-LINE 點餐整合
-訂單紀錄系統
-
-只要回我一句👇
-👉「
-升級正式版」或「
-接 LINE」
-
-我可以直接幫你變成商用系統 👍
