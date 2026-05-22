@@ -1,55 +1,114 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <title>系統</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    input, button { padding: 8px; margin: 5px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鮮到味｜專屬報價單</title>
+
+<style>
+body{
+    margin:0;
+    font-family: "Noto Sans TC", Arial, sans-serif;
+    background:#f7f7f7;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.card{
+    background:white;
+    padding:40px 30px;
+    border-radius:16px;
+    width:340px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+h2{
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:10px 0 20px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    font-size:16px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#111;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#333;
+}
+
+.sub{
+    margin-top:10px;
+    font-size:12px;
+    color:#888;
+}
+</style>
 </head>
+
 <body>
 
-<!-- ================= 版本顯示 ================= -->
-<p>目前版本：<span id="versionBox"></span></p>
+<!-- 登入區 -->
+<div class="card" id="loginBox">
+    <h2>輸入專屬密碼</h2>
+    <input id="pwd" type="password" placeholder="請輸入密碼">
+    <button onclick="login()">進入</button>
+    <div class="sub">請向客服取得專屬報價</div>
+</div>
 
-<!-- ================= 密碼輸入 ================= -->
-<h3>輸入密碼</h3>
-<input type="password" id="passwordInput" placeholder="請輸入密碼" />
-<button onclick="checkPassword()">進入</button>
-
-<p id="status"></p>
+<!-- 主畫面 -->
+<div class="card" id="mainBox" style="display:none;">
+    <h2>專屬報價單</h2>
+    <button onclick="download()">下載 PDF</button>
+    <div class="sub">僅供合作客戶使用</div>
+</div>
 
 <script>
-/* =========================
-   版本系統（LocalStorage）
-========================= */
-let visitCount = localStorage.getItem("visit_count");
 
-if (!visitCount) {
-  visitCount = 1;
-} else {
-  visitCount = parseInt(visitCount) + 1;
+// ===== 密碼（可自行新增）=====
+const PASSWORD_MAP = {
+    "1234": "quotation.pdf",     // 內部
+    "ABC123": "quotation.pdf",  // 客戶A
+    "XYZ789": "quotation.pdf"   // 客戶B
+};
+
+// 登入
+function login(){
+    const input = document.getElementById("pwd").value.trim();
+
+    if(PASSWORD_MAP[input]){
+        window.selectedPDF = PASSWORD_MAP[input];
+
+        document.getElementById("loginBox").style.display="none";
+        document.getElementById("mainBox").style.display="block";
+    }else{
+        alert("密碼錯誤");
+    }
 }
 
-localStorage.setItem("visit_count", visitCount);
-
-document.getElementById("versionBox").innerText = `第${visitCount}版`;
-
-/* =========================
-   密碼驗證
-========================= */
-function checkPassword() {
-  const input = document.getElementById("passwordInput").value;
-
-  const correctPassword = "1234"; // ← 可自行修改
-
-  if (input === correctPassword) {
-    document.getElementById("status").innerText = "✅ 進入成功";
-  } else {
-    document.getElementById("status").innerText = "❌ 密碼錯誤";
-  }
+// 下載
+function download(){
+    if(window.selectedPDF){
+        window.open(window.selectedPDF, "_blank");
+    }
 }
+
 </script>
 
 </body>
